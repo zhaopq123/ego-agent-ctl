@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "ego agent ctl",
+  "version": "1.0.0",
+  "description": "给 Agent 用的 ego lite 控制层：一次调用拿到结构化页面状态（Markdown 表），动作前后强制回读校验，拖拽可比对落点与容器变化。",
+  "permissions": ["tabs", "scripting", "activeTab", "debugger"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "ego agent ctl",
+    "default_popup": "panel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
