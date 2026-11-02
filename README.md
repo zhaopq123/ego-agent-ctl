@@ -10,6 +10,22 @@
 2. 「加载已解压的扩展程序」，选本目录
 3. 扩展 id 记下来，面板地址是 `chrome-extension://<id>/panel.html`
 
+id 因机器而异（manifest 没写固定 key）：本机 `bkmcldiinkokgjogdjdafhokebkpofba`，ThinkPad `bncdedolknoadpikocanjgjpfbgfahbl`。别照抄，跑 `install/verify.mjs` 打印出来的那个才作数。
+
+### 无人值守自装（`install/` 三步）
+
+在 **ego 窗口所在的那个登录会话**里跑（不能是 SSH 的管理员会话，ego 会拒 CLI）：
+
+```
+powershell -NoProfile -Command "Get-Content -Raw install/load.mjs | & '<ego 安装目录>\ego-browser.exe' nodejs"
+python install/fill_dialog.py "<本目录绝对路径>" 30
+powershell -NoProfile -Command "Get-Content -Raw install/verify.mjs | & '<ego 安装目录>\ego-browser.exe' nodejs"
+```
+
+1. `load.mjs`：开 `chrome://extensions`，若「加载已解压」按钮没布局就先点开开发者模式，再用**真实鼠标**点按钮（合成 click 没有用户手势，Chrome 会静默吞掉文件框）
+2. `fill_dialog.py`：Win32 抓 `#32770`「选择扩展程序目录」框填路径并点「选择文件夹」；不按进程名过滤，按窗口标题认
+3. `verify.mjs`：`chrome.developerPrivate.getExtensionsInfo` 查出 id 与 `manifestErrors/runtimeErrors`
+
 ## 为什么要有这个面板页
 
 扩展页有 `chrome.tabs` / `chrome.scripting` 权限，普通网页没有。Agent 把面板页当一个「控制台」打开，在里面调用 `window.egoCtl.*`，由它转给目标页的 content script。
