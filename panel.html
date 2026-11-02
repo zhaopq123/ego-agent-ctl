@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>ego agent ctl</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; padding: 12px; width: 520px; font: 12px/1.5 ui-monospace, Consolas, monospace; background: #14161a; color: #d7dbe0; }
+    h1 { font-size: 13px; margin: 0 0 8px; color: #8ab4f8; }
+    button { background: #232830; color: #d7dbe0; border: 1px solid #3a4048; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+    button:hover { background: #2c333d; }
+    #out { margin-top: 8px; height: 420px; overflow: auto; white-space: pre-wrap; background: #0f1114; border: 1px solid #2a2f36; padding: 8px; }
+    .row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+    input, textarea { background: #0f1114; color: #d7dbe0; border: 1px solid #2a2f36; border-radius: 4px; padding: 4px 6px; font: inherit; }
+    input { width: 90px; }
+  </style>
+</head>
+<body>
+  <h1>ego agent ctl</h1>
+  <div class="row">
+    <button data-cmd="snapshot">状态</button>
+    <button data-cmd="shot">截图</button>
+    <button data-cmd="tabs">标签页</button>
+    <button data-cmd="waitFor">等待变化</button>
+  </div>
+  <div class="row">
+    <input id="x" placeholder="x"><input id="y" placeholder="y">
+    <button data-cmd="clickAt">按坐标点</button>
+    <button data-cmd="key">按键</button>
+  </div>
+  <div class="row">
+    <input id="text" placeholder="输入内容" style="width:200px">
+    <button data-cmd="type">输入</button>
+  </div>
+  <pre id="out">就绪。Agent 直接调用 window.egoCtl。</pre>
+  <script src="panel.js"></script>
+</body>
+</html>
