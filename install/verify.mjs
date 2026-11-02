@@ -1,5 +1,3 @@
-// 首次安装第 3 步：回读扩展状态，拿到 id
-// 把本文件内容喂给 ego-browser nodejs
 (async () => {
   const task = await taskSpace("ego-ctl-verify");
   const page = await task.page("p1");
