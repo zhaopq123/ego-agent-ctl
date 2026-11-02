@@ -48,7 +48,12 @@ def text(h, n=800):
 
 
 def dialogs():
-    res, pids = [], ego_pids()
+    """找「选择扩展程序目录」文件夹对话框。
+
+    不按进程名过滤：ego lite 的对话框可能挂在 ego.exe 之外的进程上（实测 PID 对不上），
+    按窗口类 #32770 + 标题含「扩展」或「文件夹」+ 有 Edit 子控件来认，唯一且稳。
+    """
+    res = []
 
     def cb(h, l):
         if not u.IsWindowVisible(h):
@@ -57,11 +62,9 @@ def dialogs():
         u.GetClassNameW(h, c, 256)
         if c.value != "#32770":
             return True
-        pid = w.DWORD()
-        u.GetWindowThreadProcessId(h, ctypes.byref(pid))
-        if pid.value not in pids:
-            return True
-        res.append(h)
+        title = text(h, 256)
+        if "扩展" in title or "Extensi" in title or "文件夹" in title:
+            res.append(h)
         return True
 
     u.EnumWindows(EP(cb), 0)
