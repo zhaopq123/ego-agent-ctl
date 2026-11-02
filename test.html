@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>ego ctl 测试台</title>
+<style>
+  body { font: 14px/1.6 sans-serif; margin: 16px; }
+  .box { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+  .menu .inner { display: none; }
+  .menu:hover .inner, .menu.js-open .inner { display: inline-block; }
+  .hidden-btn { display: none; }
+  #dst { min-height: 70px; border: 1px dashed #888; padding: 8px; }
+  .tall { height: 900px; background: repeating-linear-gradient(#fafafa, #fafafa 40px, #eee 40px, #eee 80px); }
+  li[draggable] { cursor: move; padding: 4px; border: 1px solid #bbb; margin: 4px; list-style: none; width: 160px; }
+  .fake-btn { cursor: pointer; display: inline-block; padding: 4px 8px; border: 1px solid #ccc; margin-right: 8px; }
+</style>
+</head>
+<body>
+<h1>ego agent ctl 测试台</h1>
+
+<div class="box">
+  <form id="f" onsubmit="event.preventDefault(); document.getElementById('log').textContent = '表单提交: ' + document.getElementById('kw').value;">
+    <label>关键词 <input id="kw" placeholder="输入关键词"></label>
+    <button id="submit" type="submit">提交</button>
+  </form>
+  <span id="log">未提交</span>
+</div>
+
+<div class="box menu" id="menu">
+  <span>更多操作（悬停出现）</span>
+  <button class="inner" id="revealed">悬停后才有的按钮</button>
+</div>
+
+<div class="box">
+  <button class="hidden-btn" id="ghost">display:none 的按钮</button>
+  <span>上面有一个 display:none 的按钮</span>
+</div>
+
+<div class="box">
+  <ul id="src">
+    <li draggable="true" id="card-a">卡片 A</li>
+    <li draggable="true" id="card-b">卡片 B</li>
+  </ul>
+  <div id="dst">投放区（空）</div>
+</div>
+
+<div class="box">
+  <iframe id="fr" srcdoc="<button id='inner-btn' onclick=&quot;document.title='iframe-clicked'&quot;>框架内按钮</button>"></iframe>
+</div>
+
+<div class="box">
+  <ego-widget id="widget"></ego-widget>
+</div>
+
+<div class="box">
+  <div class="fake-btn" id="fake">伪按钮（div + cursor:pointer）</div>
+  <div class="fake-btn" id="dead">点了没反应的块</div>
+</div>
+
+<div class="box">
+  <button id="thrower">触发页面报错</button>
+  <button id="overlayBtn">显示遮挡层</button>
+</div>
+
+<div id="overlay" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(200,0,0,.08);z-index:9"></div>
+
+<div class="tall"></div>
+<button id="bottom">底部按钮（需滚动）</button>
+
+<script>
+  const log = document.getElementById("log");
+  document.getElementById("submit").addEventListener("click", () => {
+    log.textContent = "已提交: " + document.getElementById("kw").value;
+  });
+  document.getElementById("revealed").addEventListener("click", () => { log.textContent = "悬停按钮已点"; });
+
+  const menu = document.getElementById("menu");
+  menu.addEventListener("mouseenter", () => menu.classList.add("js-open"));
+  menu.addEventListener("mouseleave", () => menu.classList.remove("js-open"));
+
+  document.getElementById("fake").addEventListener("click", () => { log.textContent = "伪按钮已点"; });
+  document.getElementById("thrower").addEventListener("click", () => { throw new Error("测试异常ABC"); });
+  document.getElementById("overlayBtn").addEventListener("click", () => { document.getElementById("overlay").style.display = "block"; });
+  document.getElementById("bottom").addEventListener("click", () => { log.textContent = "底部按钮已点"; });
+
+  const dst = document.getElementById("dst");
+  let dragging = null;
+  document.querySelectorAll("#src li").forEach((li) => {
+    li.addEventListener("dragstart", () => { dragging = li; });
+    li.addEventListener("dragend", () => { dragging = null; });
+  });
+  dst.addEventListener("dragover", (e) => { e.preventDefault(); });
+  dst.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (dragging) { dst.appendChild(dragging); dst.removeAttribute("data-empty"); }
+  });
+
+  class EgoWidget extends HTMLElement {
+    connectedCallback() {
+      const sr = this.attachShadow({ mode: "open" });
+      sr.innerHTML = '<button id="shadow-btn">影子按钮</button><div id="shadow-log">未点击</div>';
+      sr.querySelector("#shadow-btn").addEventListener("click", () => {
+        sr.querySelector("#shadow-log").textContent = "影子已点";
+      });
+    }
+  }
+  customElements.define("ego-widget", EgoWidget);
+</script>
+</body>
+</html>
