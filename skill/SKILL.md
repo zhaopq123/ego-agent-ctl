@@ -12,20 +12,36 @@ description: 在 ego lite 里用结构化 Markdown 页面状态驱动浏览器�
 
 ## 首次使用：agent 自己装（不用人点）
 
-先按「前置检查」看扩展在不在。不在就按顺序跑这三步，**前提是 ego 窗口在当前登录桌面**（SSH/无桌面会话拿不到系统文件对话框）。
+先按「前置检查」看扩展在不在。不在就跑下面三步。
+
+**唯一硬前提：这三步必须跑在 ego 窗口所在的那个登录会话里，且用非管理员令牌。** ego 会直接拒绝管理员身份的 CLI（`ego-browser is running as administrator`），ssh 进来的管理员会话也看不到系统文件对话框。同一个机器上 ego 跑在别的账户（常见）时，用一次性计划任务把脚本丢进那个会话：
 
 ```powershell
-# 1. 触发「加载已解压」，会弹出系统文件夹选择框
-Get-Content -Raw "<扩展目录>\install\load.mjs" | ego-browser nodejs
-
-# 2. 立刻（25 秒内）把路径填进那个框并确认
-python "<扩展目录>\install\fill_dialog.py" "<扩展目录>" 25
-
-# 3. 回读，拿到 id
-Get-Content -Raw "<扩展目录>\install\verify.mjs" | ego-browser nodejs
+# 在管理员会话里（ssh 也行）：注册一次性任务，落到 ego 所在用户的交互会话
+Register-ScheduledTask -TaskName ego_ctl_install `
+  -Action (New-ScheduledTaskAction -Execute powershell.exe `
+           -Argument '-NoProfile -ExecutionPolicy Bypass -File C:\Users\<用户>\ego\go.ps1') `
+  -Principal (New-ScheduledTaskPrincipal -UserId '<用户>' -LogonType Interactive) -Force
+Start-ScheduledTask -TaskName ego_ctl_install
+# 用完注销
+Unregister-ScheduledTask -TaskName ego_ctl_install -Confirm:$false
 ```
 
-第 3 步输出 `state: "ENABLED"` 且两个错误数都为 0 才算装好；然后照常用 `chrome-extension://<id>/panel.html`。
+`go.ps1` 里按顺序跑这三步：
+
+```powershell
+# 1. 打开 chrome://extensions，必要时先开开发者模式，再用真实鼠标点「加载已解压」
+#    （合成 click 没有用户手势，Chrome 会把文件框静默吞掉）
+Get-Content -Raw "<扩展目录>\install\load.mjs" | & "<ego 安装目录>\ego-browser.exe" nodejs
+
+# 2. 立刻（30 秒内）把路径填进系统文件夹框并确认
+python "<扩展目录>\install\fill_dialog.py" "<扩展目录>" 30
+
+# 3. 回读，拿到 id
+Get-Content -Raw "<扩展目录>\install\verify.mjs" | & "<ego 安装目录>\ego-browser.exe" nodejs
+```
+
+第 3 步输出 `state: "ENABLED"` 且两个错误数都为 0 才算装好；然后照常用 `chrome-extension://<id>/panel.html`。id 因机器而异（manifest 没写 key），必须用第 3 步打印的那个。
 
 装一次就持久了，之后任何 agent 直接用，不用再装。
 
